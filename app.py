@@ -4,23 +4,92 @@ from langchain_pinecone import PineconeVectorStore
 from langchain_huggingface import HuggingFaceEmbeddings
 from pinecone import Pinecone
 
-# 1. Configuración de la interfaz "Premium"
-st.set_page_config(page_title="Asistente Exotikeh", page_icon="✨", layout="centered")
+# ==========================================
+# 1. Configuración de la página y UX TIKI/TROPICAL
+# ==========================================
+st.set_page_config(
+    page_title="Asistente Exotikeh Tiki-Bot", 
+    page_icon="🌴", 
+    layout="centered"
+)
 
+# Estilos CSS Personalizados para el ambiente Tiki Aesthetic
 st.markdown("""
     <style>
-    .main { background-color: #f8f9fa; }
-    .stButton>button { width: 100%; border-radius: 20px; height: 3em; background-color: #1A1A1A; color: white; border: none; }
-    .stTextInput>div>div>input { border-radius: 15px; }
+    /* Fondo principal y tipografía */
+    .main { 
+        background-color: #fdf6e3; /* Crema suave tropical */
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    
+    /* Personalización del Título y Subtítulo */
+    h1 { 
+        color: #d35400; /* Naranja quemado Tiki */
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 2.5rem !important;
+        font-weight: 800 !important;
+        margin-bottom: 0px !important;
+    }
+    
+    h3 { 
+        color: #27ae60; /* Verde esmeralda selva */
+        text-align: center;
+        font-weight: 400 !important;
+        margin-top: 0px !important;
+        font-size: 1.2rem !important;
+    }
+
+    /* Estilo para el Divider y Captions */
+    hr { border-top: 2px dashed #d35400; }
+    .stCaption { color: #e67e22; text-align: center; font-style: italic; }
+
+    /* Estilo Aesthetic para el Input de Chat */
+    .stChatInputContainer {
+        border-radius: 30px !important;
+        border: 2px solid #27ae60 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    /* Botón de enviar (Input) */
+    .stChatInput button {
+        background-color: #d35400 !important;
+        color: white !important;
+        border-radius: 50% !important;
+    }
+
+    /* Personalización de los Mensajes de Chat */
+    .stChatMessage.user {
+        background-color: #ffe0b2; /* Naranja muy suave para el usuario */
+        border-radius: 20px 20px 0px 20px;
+        margin-bottom: 15px;
+        border: 1px solid #ffcc80;
+    }
+    
+    .stChatMessage.assistant {
+        background-color: #e8f5e9; /* Verde muy suave para el asistente */
+        border-radius: 20px 20px 20px 0px;
+        margin-bottom: 15px;
+        border: 1px solid #c8e6c9;
+    }
+
+    /* Iconos y textos de los mensajes */
+    .stChatMessage strong { color: #333; }
+    .stChatMessage.assistant p { color: #1a1a1a; font-size: 1rem; }
+
     </style>
     """, unsafe_allow_html=True)
 
-st.title("✨ Asistente de Gestión Exotikeh")
-st.caption("IA para vasitos de Lujo")
+# Encabezado Aesthetic con Iconos
+st.markdown("<h1>🌺 EXOTIKEH 🗿</h1>", unsafe_allow_html=True)
+st.markdown("<h3>Tiki-Bot de Gestión Operativa</h3>", unsafe_allow_html=True)
 
+# ==========================================
 # 2. Configuración de Seguridad y Conexión
+# ==========================================
 try:
-    # Usamos los nombres exactos de tus Secrets
     GEN_AI_KEY = st.secrets["GEMINI_KEY"]
     PINECONE_KEY = st.secrets["PINECONE_API_KEY"]
     
@@ -28,11 +97,13 @@ try:
     pc = Pinecone(api_key=PINECONE_KEY)
     index_name = "exotibot-index" 
     
-except Exception as e:
-    st.error("Error en la configuración de las llaves de seguridad.")
+except KeyError as e:
+    st.error(f"Falta configurar el secreto: {e}")
     st.stop()
 
+# ==========================================
 # 3. Carga de Modelos (Optimizados)
+# ==========================================
 @st.cache_resource
 def load_system():
     # Modelo de embeddings para tus documentos
@@ -41,46 +112,55 @@ def load_system():
     # Conexión a tu base de datos de manuales en Pinecone
     vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
     
-    # El modelo más óptimo según tu lista de diagnóstico
-    # Usamos el 2.0 Flash por su balance perfecto
+    # El modelo más funcional según tu diagnóstico
     model = genai.GenerativeModel('models/gemini-flash-latest')
     
     return vectorstore, model
 
 vectorstore, model = load_system()
 
-# 4. Lógica del Chat
+# ==========================================
+# 4. Lógica del Chat con Personalidad Tiki
+# ==========================================
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Mostrar historial con estilo
+# Mostrar historial con iconos tropicales
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
+    # Asignar icono tropical según el rol
+    if message["role"] == "user":
+        avatar_icon = "🥥"
+    else:
+        avatar_icon = "🗿"
+        
+    with st.chat_message(message["role"], avatar=avatar_icon):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Consulta sobre inventario o logística..."):
+# Entrada del usuario
+if prompt := st.chat_input("¿Qué dudita tienes hoy, Ohana?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
+    with st.chat_message("user", avatar="🥥"):
         st.markdown(prompt)
 
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar="🗿"):
         try:
             # Búsqueda de contexto en tus archivos (RAG)
             docs = vectorstore.similarity_search(prompt, k=3)
             contexto = "\n".join([doc.page_content for doc in docs])
             
-            # Instrucciones precisas para el asistente
+            # Prompt para guiar el tono del asistente
             full_prompt = f"""
-            Actúa como el experto en gestión de EXOTIKEH. 
-            Tu objetivo es dar respuestas precisas basándote en la información técnica de la marca.
+            Eres el experto en gestión de EXOTIKEH. Tu tono es profesional, premium, 
+            eficiente pero amable y relajado (como un resort de lujo en el Caribe).
+            Trata a los usuarios como 'Ohana' (familia) cuando sea apropiado.
             
-            CONTEXTO DE MANUALES:
+            CONTEXTO DE MANUALES DE EXOTIKEH:
             {contexto}
             
             PREGUNTA DEL USUARIO:
             {prompt}
             
-            Respuesta (en español, profesional y ejecutiva):
+            Respuesta (en español y con un toque tropical elegante):
             """
             
             response = model.generate_content(full_prompt)
@@ -90,8 +170,11 @@ if prompt := st.chat_input("Consulta sobre inventario o logística..."):
             st.session_state.messages.append({"role": "assistant", "content": respuesta_final})
             
         except Exception as e:
-            st.error(f"Nota: El asistente está procesando la información. Detalle: {str(e)}")
+            # Error amigable
+            st.error(f"¡Aloha! El asistente está tomando un breve descanso tropical. Vuelve a intentarlo en unos segundos. Detalle: {str(e)}")
 
-# Pie de página
+# ==========================================
+# 5. Pie de página Tiki Aesthetic
+# ==========================================
 st.divider()
-st.caption("© 2026 EXOTIKEH - Gestión de Procesos y Diseño Premium")
+st.caption("🌴 © 2026 EXOTIKEH - Botcito de Procesos & Diseño Premium 🥥")
