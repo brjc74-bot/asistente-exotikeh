@@ -1,67 +1,108 @@
 import streamlit as st
-import os
-import time
-from datetime import datetime
 import google.generativeai as genai
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
+from langchain_huggingface import HuggingFaceEmbeddings
+from pinecone import Pinecone
 
-# --- CONFIGURACIÓN ESTÉTICA ---
-st.set_page_config(page_title="Asistente Exotikeh", layout="wide")
+# 1. Configuración de la página y Estética "Premium"
+st.set_page_config(page_title="Asistente Exotikeh", page_icon="✨", layout="centered")
 
 st.markdown("""
     <style>
-    .stChatMessage { border-radius: 12px; margin-bottom: 15px; border: 1px solid #e0e6ed; }
-    .time-stamp { font-size: 0.7rem; color: #95a5a6; display: block; text-align: right; }
-    h1 { color: #2c3e50; text-align: center; }
+    .main { background-color: #f5f7f9; }
+    .stButton>button { width: 100%; border-radius: 20px; height: 3em; background-color: #007bff; color: white; }
+    .stTextInput>div>div>input { border-radius: 15px; }
     </style>
     """, unsafe_allow_html=True)
 
-st.markdown("<h1>✨ Asistente de Gestión Exotikeh</h1>", unsafe_allow_html=True)
+st.title("✨ Asistente de Gestión Exotikeh")
+st.subheader("Consultoría de Inventario y Operaciones")
 
-# --- CARGA DE LLAVES SEGURAS (STREAMLIT SECRETS) ---
+# 2. Configuración de Seguridad (Secrets)
 try:
-    GENAI_KEY = st.secrets["GEMINI_KEY"]
+    GEN_AI_KEY = st.secrets["GEMINI_KEY"]
     PINECONE_KEY = st.secrets["PINECONE_API_KEY"]
-    genai.configure(api_key=GENAI_KEY)
-except:
-    st.error("Error: Configura las llaves en el panel de Streamlit.")
+    
+    # Configurar Google AI
+    genai.configure(api_key=GEN_AI_KEY)
+    
+    # Configurar Pinecone
+    pc = Pinecone(api_key=PINECONE_KEY)
+    index_name = "exotibot-index" # Tu nombre de índice
+    
+except KeyError as e:
+    st.error(f"Falta configurar el secreto: {e}")
     st.stop()
 
-# --- MEMORIA ANALÍTICA (PINECONE) ---
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-vector_store = PineconeVectorStore(index_name="exotibot-index", embedding=embeddings, pinecone_api_key=PINECONE_KEY)
+# 3. Inicializar Modelos de Inteligencia
+@st.cache_resource
+def load_models():
+    # Embeddings para buscar en tus documentos de Exotikeh
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    
+    # Conexión al índice de Pinecone
+    vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
+    
+    # Selección de cerebro (Gemini) con respaldo para evitar el error "NotFound"
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        # Prueba rápida para ver si el modelo responde
+        model.generate_content("test") 
+    except Exception:
+        try:
+            model = genai.GenerativeModel('gemini-pro')
+        except Exception:
+            model = genai.GenerativeModel('models/gemini-1.5-flash')
+            
+    return vectorstore, model
 
-# --- HISTORIAL ---
+vectorstore, model = load_models()
+
+# 4. Interfaz de Chat
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Mostrar historial
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        st.markdown(f"<span class='time-stamp'>🕒 {message['time']}</span>", unsafe_allow_html=True)
         st.markdown(message["content"])
 
-# --- INTERACCIÓN ---
-if prompt := st.chat_input("Consulta técnica sobre Exotikeh..."):
-    hora = datetime.now().strftime("%H:%M:%S")
-    st.session_state.messages.append({"role": "user", "content": prompt, "time": hora})
-    
+# Entrada del usuario
+if prompt := st.chat_input("¿En qué puedo ayudarte con Exotikeh?"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
-        st.markdown(f"<span class='time-stamp'>🕒 {hora}</span>", unsafe_allow_html=True)
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        # Búsqueda profunda (Analiza los 5 mejores fragmentos)
-        docs = vector_store.similarity_search(prompt, k=5)
-        contexto = "\n".join([f"[{d.metadata.get('source','Doc')}, p.{d.metadata.get('page','?')}] {d.page_content}" for d in docs])
-        
-        model = genai.GenerativeModel('gemini-pro')
-        full_prompt = f"Eres el analista senior de Exotikeh. Responde de forma técnica y profesional usando este contexto:\n{contexto}\n\nPregunta: {prompt}"
-        
-        response = model.generate_content(full_prompt)
-        res_text = response.text
-        hora_res = datetime.now().strftime("%H:%M:%S")
-        
-        st.markdown(f"<span class='time-stamp'>🕒 {hora_res}</span>", unsafe_allow_html=True)
-        st.markdown(res_text)
-        st.session_state.messages.append({"role": "assistant", "content": res_text, "time": hora_res})
+        try:
+            # A. Buscar información relevante en tus documentos (RAG)
+            docs = vectorstore.similarity_search(prompt, k=3)
+            contexto = "\n".join([doc.page_content for doc in docs])
+            
+            # B. Construir el Prompt para el Asistente
+            full_prompt = f"""
+            Eres el Asistente de Gestión de EXOTIKEH. Tu tono es profesional, premium y eficiente.
+            Usa el siguiente contexto de nuestros manuales para responder:
+            ---
+            CONTEXTO: {contexto}
+            ---
+            PREGUNTA: {prompt}
+            
+            Si la información no está en el contexto, usa tu conocimiento general para ayudar 
+            mencionando que es una sugerencia externa.
+            """
+            
+            # C. Generar respuesta
+            response = model.generate_content(full_prompt)
+            respuesta_texto = response.text
+            
+            st.markdown(respuesta_texto)
+            st.session_state.messages.append({"role": "assistant", "content": respuesta_texto})
+            
+        except Exception as e:
+            st.error(f"Hubo un detalle técnico: {str(e)}")
+            st.info("Tip: Verifica que tu API Key de Gemini tenga permisos en AI Studio.")
+
+# Pie de página aesthetic
+st.divider()
+st.caption("Exotikeh Premium Glassware - Gestión Inteligente 2026")
