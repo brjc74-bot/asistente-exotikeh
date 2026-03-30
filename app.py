@@ -16,7 +16,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.title("✨ Asistente de Gestión Exotikeh")
-st.caption("Inteligencia Operativa para Cristalería de Lujo")
+st.caption("IA para vasitos de Lujo")
 
 # 2. Configuración de Seguridad y Conexión
 try:
