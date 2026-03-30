@@ -43,7 +43,7 @@ def load_system():
     
     # El modelo más óptimo según tu lista de diagnóstico
     # Usamos el 2.0 Flash por su balance perfecto
-    model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
+    model = genai.GenerativeModel('models/gemini-flash-latest')
     
     return vectorstore, model
 
