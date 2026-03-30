@@ -8,7 +8,7 @@ from pinecone import Pinecone
 # 1. Configuración de la página y UX TIKI/TROPICAL
 # ==========================================
 st.set_page_config(
-    page_title="Asistente Exotikeh Tiki-Bot", 
+    page_title="Exotibot 2.0", 
     page_icon="🌴", 
     layout="centered"
 )
@@ -84,7 +84,7 @@ st.markdown("""
 
 # Encabezado Aesthetic con Iconos
 st.markdown("<h1>🌺 EXOTIKEH 🗿</h1>", unsafe_allow_html=True)
-st.markdown("<h3>Tiki-Bot de Gestión Operativa</h3>", unsafe_allow_html=True)
+st.markdown("<h3>Exoti-Bot de Soporte de Documentitos</h3>", unsafe_allow_html=True)
 
 # ==========================================
 # 2. Configuración de Seguridad y Conexión
@@ -137,7 +137,7 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # Entrada del usuario
-if prompt := st.chat_input("¿Qué dudita tienes hoy, Ohana?"):
+if prompt := st.chat_input("¿Qué duda operativa tienes hoy, Ohana?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user", avatar="🥥"):
         st.markdown(prompt)
@@ -174,7 +174,7 @@ if prompt := st.chat_input("¿Qué dudita tienes hoy, Ohana?"):
             st.error(f"¡Aloha! El asistente está tomando un breve descanso tropical. Vuelve a intentarlo en unos segundos. Detalle: {str(e)}")
 
 # ==========================================
-# 5. Pie de página Tiki Aesthetic
+# 5. Pie de página Exotiwoow
 # ==========================================
 st.divider()
-st.caption("🌴 © 2026 EXOTIKEH - Botcito de Procesos & Diseño Premium 🥥")
+st.caption("🌴 © 2026 EXOTIKEH - Vasitos de Diseño Premium Tropical 🥥")
