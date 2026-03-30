@@ -1,7 +1,0 @@
-streamlit
-google-generativeai
-langchain-pinecone
-langchain-huggingface
-langchain-community
-pypdf
-docx2txt
