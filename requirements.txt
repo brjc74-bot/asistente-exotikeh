@@ -1,7 +1,8 @@
-fastapi
-uvicorn
-python-dotenv
-botbuilder-core
+streamlit
 google-generativeai
 langchain-pinecone
 langchain-huggingface
+langchain-community
+sentence-transformers
+pypdf
+docx2txt
