@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+python-dotenv
+botbuilder-core
+google-generativeai
+langchain-pinecone
+langchain-huggingface
