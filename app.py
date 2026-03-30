@@ -55,7 +55,7 @@ if prompt := st.chat_input("Consulta técnica sobre Exotikeh..."):
         docs = vector_store.similarity_search(prompt, k=5)
         contexto = "\n".join([f"[{d.metadata.get('source','Doc')}, p.{d.metadata.get('page','?')}] {d.page_content}" for d in docs])
         
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('models/gemini-1.5-flash')
         full_prompt = f"Eres el analista senior de Exotikeh. Responde de forma técnica y profesional usando este contexto:\n{contexto}\n\nPregunta: {prompt}"
         
         response = model.generate_content(full_prompt)
