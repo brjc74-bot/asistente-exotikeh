@@ -8,7 +8,7 @@ from pinecone import Pinecone
 # 1. DISEÑO UI: TROPICAL / TIKI AESTHETIC
 # ==========================================
 st.set_page_config(
-    page_title="Asistente Exotikeh Tiki-Bot", 
+    page_title="Exotibot 2.0", 
     page_icon="🌴", 
     layout="centered"
 )
@@ -91,7 +91,7 @@ st.markdown("""
 
 # Encabezado Visual
 st.markdown("<h1>🌺 EXOTIKEH 🗿</h1>", unsafe_allow_html=True)
-st.markdown("<h3>Gestión Operativa en el Paraíso</h3>", unsafe_allow_html=True)
+st.markdown("<h3>Botcito con respuesta a consultas de documentos</h3>", unsafe_allow_html=True)
 
 # ==========================================
 # 2. SEGURIDAD Y CONEXIÓN (Secrets)
@@ -140,7 +140,7 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # Entrada de chat
-if prompt := st.chat_input("¿Qué duda operativa tienes hoy, Ohana?"):
+if prompt := st.chat_input("¿Qué dudita tienes hoy, Ohana?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user", avatar="🥥"):
         st.markdown(prompt)
@@ -178,4 +178,4 @@ if prompt := st.chat_input("¿Qué duda operativa tienes hoy, Ohana?"):
 # 5. PIE DE PÁGINA
 # ==========================================
 st.markdown("<hr>", unsafe_allow_html=True)
-st.markdown("<div class='footer-text'>🌴 © 2026 EXOTIKEH Premium Glassware - Ohana Management System 🥥</div>", unsafe_allow_html=True)
+st.markdown("<div class='footer-text'>🌴 © 2026 EXOTIBOT Vasos de Lujo - Momentos de Lujo 🥥</div>", unsafe_allow_html=True)
